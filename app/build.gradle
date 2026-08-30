@@ -1,0 +1,10 @@
+plugins { id 'com.android.application' }
+
+android { namespace 'com.exammaker.app'; compileSdk 34
+    defaultConfig { applicationId 'com.exammaker.app'; minSdk 24; targetSdk 34; versionCode 7; versionName '1.6' }
+    androidResources { noCompress 'pdf' }
+}
+
+dependencies {
+    implementation 'com.itextpdf:itext7-core:7.2.5'
+}
