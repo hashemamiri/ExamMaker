@@ -1,7 +1,7 @@
 plugins { id 'com.android.application' }
 
 android { namespace 'com.exammaker.app'; compileSdk 34
-    defaultConfig { applicationId 'com.exammaker.app'; minSdk 24; targetSdk 34; versionCode 9; versionName '2.1-ocr-editor' }
+    defaultConfig { applicationId 'com.exammaker.app'; minSdk 24; targetSdk 34; versionCode 10; versionName '2.1.1-ocr-regex-fix' }
     androidResources { noCompress 'pdf' }
 }
 

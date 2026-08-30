@@ -46,16 +46,25 @@ public final class PersianOcrEngine implements Closeable {
         LinkedHashMap<String,String> fields = new LinkedHashMap<>();
         match(fields, "courseName", text, "(?:نام\\s*درس|درس)\\s*[:：]?\\s*([^\\n]{2,60})");
         match(fields, "teacherName", text, "(?:نام\\s*(?:استاد|دبیر|مدرس)|استاد|دبیر)\\s*[:：]?\\s*([^\\n]{2,60})");
-        match(fields, "examDate", text, "(?:تاریخ(?:\\s*امتحان)?)\\s*[:：]?\\s*([۰-۹0-9/\\-]{4,20})");
-        match(fields, "examTime", text, "(?:ساعت(?:\\s*(?:برگزاری|امتحان))?)\\s*[:：]?\\s*([۰-۹0-9:]{2,12})");
-        match(fields, "duration", text, "(?:مدت(?:\\s*(?:زمان|امتحان))?)\\s*[:：]?\\s*([۰-۹0-9]{1,4})");
+        // Keep value groups broad: some Android ICU versions reject mixed Persian/ASCII
+        // ranges inside a character class with U_ILLEGAL_ARGUMENT_ERROR.
+        match(fields, "examDate", text, "(?:تاریخ(?:\\s*امتحان)?)\\s*[:：]?\\s*([^\\n]{1,20})");
+        match(fields, "examTime", text, "(?:ساعت(?:\\s*(?:برگزاری|امتحان))?)\\s*[:：]?\\s*([^\\n]{1,16})");
+        match(fields, "duration", text, "(?:مدت(?:\\s*(?:زمان|امتحان))?)\\s*[:：]?\\s*([^\\n]{1,12})");
         match(fields, "grade", text, "(?:پایه|رشته|گروه\\s*آموزشی)\\s*[:：]?\\s*([^\\n]{2,60})");
         return fields;
     }
 
     private void match(Map<String,String> out, String key, String text, String regex) {
-        Matcher m = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(text);
-        if (m.find()) out.put(key, m.group(1).trim());
+        try {
+            // CASE_INSENSITIVE is sufficient for Persian labels and is compatible
+            // with older Android ICU regex implementations.
+            Matcher m = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(text);
+            if (m.find()) out.put(key, m.group(1).trim());
+        } catch (RuntimeException ignored) {
+            // Field extraction is best-effort. A malformed/unsupported expression
+            // must never abort OCR or prevent the visual editor from opening.
+        }
     }
 
     private String normalize(String s) {
